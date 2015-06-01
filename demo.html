@@ -1,0 +1,152 @@
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+<script src="https://maps.googleapis.com/maps/api/js"></script>
+<script type="text/javascript">
+    var GLOBALmap;
+    var marker = [null, null];
+	var coords = {
+		"Zeus Street Greek Drummoyne":[-33.856632, 151.146331],
+		"KFC Town Hall":[-33.874517, 151.206632],
+		"Oliver Brown Hornsby":[-33.703980, 151.099570],
+		"Sweet Spot Randwick":[-33.919424, 151.242281],
+		"2 Barney St Drummoyne NSW Australia":[-33.857417, 151.147231]
+	};
+	var transportTypeConstants = 
+		[ google.maps.TravelMode.BICYCLING
+		, google.maps.TravelMode.DRIVING
+		, google.maps.TravelMode.TRANSIT
+		, google.maps.TravelMode.WALKING];
+
+    function initialize() {
+        var mapCanvas = document.getElementById('map-canvas');
+        var location = new google.maps.LatLng(-33.864174, 151.2052868);
+        var mapOptions = {
+            center: location,
+            zoom: 12,
+            mapTypeId: google.maps.MapTypeId.ROADMAP
+        }
+        GLOBALmap = new google.maps.Map(mapCanvas, mapOptions)
+    }
+    google.maps.event.addDomListener(window, 'load', initialize);
+
+    function resetMap() {
+        GLOBALmap.setZoom(10);
+        GLOBALmap.panTo(new google.maps.LatLng(-33.864174, 151.2052868));
+    }
+	
+	function placeMarker(lat, lng, idx) {
+		if (marker[idx]) {
+			marker[idx].setMap(null);
+			marker[idx] = null;
+		}
+		var location = new google.maps.LatLng(parseFloat(lat), parseFloat(lng));
+		console.log(lat, lng);
+		marker[idx] = new google.maps.Marker({
+			position: location,
+			map: GLOBALmap
+		});
+	}
+	
+	$(function() {
+		$("#submitBtn").click(function() {
+			//Set up source and dest coords
+			var dest = $('#cafe').val();
+			var source = "2 Barney St Drummoyne NSW Australia";
+			console.log(source);
+			console.log(dest);
+			placeMarker(coords[source][0], coords[source][1], 0);
+			placeMarker(coords[dest][0], coords[dest][1], 1);
+			
+			var centreCoordsX = (coords[source][0] + coords[dest][0]) / 2;
+			var centreCoordsY = (coords[source][1] + coords[dest][1]) / 2;
+
+			//Pan map to dest
+			GLOBALmap.panTo(new google.maps.LatLng(centreCoordsX, centreCoordsY));
+			
+			//Set up api call
+			var service = new google.maps.DistanceMatrixService();
+			var sourceCoords = new google.maps.LatLng(coords[source][0], coords[source][1]);
+			var destCoords = new google.maps.LatLng(coords[dest][0], coords[dest][1]);
+			
+			service.getDistanceMatrix(
+			{
+				origins: [sourceCoords],
+				destinations: [destCoords],
+				travelMode: transportTypeConstants[$('#transportType').val()],
+				//transitOptions: TransitOptions,
+				//unitSystem: UnitSystem,
+				//durationInTraffic: true,
+				avoidHighways: false,
+				avoidTolls: true,
+			}, callback);
+
+			
+		});
+	});
+	
+	function callback(response, status) {
+		if (status == google.maps.DistanceMatrixStatus.OK) {
+			console.log(response.rows[0].elements[0].duration);
+
+			var distance = response.rows[0].elements[0].distance.value;
+			console.log(distance);
+			var tempDist = distance;
+			var count = 0;
+			while (tempDist > 1) {
+				count++;
+				tempDist = tempDist / 10;
+				console.log(tempDist);
+			}
+			console.log(distance, count);
+			
+			GLOBALmap.setZoom(21 - 2 *count);
+			
+			feedbackMsg.innerHTML = 'Travel time: ' + response.rows[0].elements[0].duration.text;
+			
+		}
+	}
+
+</script>
+<script type="text/javascript">
+$( document ).ready(function(){
+    
+});
+</script>
+<title>Travel time demo</title>
+<form action="javascript:void(0);">
+<strong>Select initial location:</strong><br>
+<select id="myLocation">
+<option value="2 Barney St Drummoyne NSW Australia">2 Barney St Drummoyne NSW Australia</option>
+</select>
+<br>
+<strong>Select a cafe:</strong><br>
+<select id="cafe">
+  <option value="Zeus Street Greek Drummoyne">Zeus Street Greek Drummoyne</option>
+  <option value="KFC Town Hall">KFC Town Hall</option>
+  <option value="Oliver Brown Hornsby">Oliver Brown Hornsby</option>
+  <option value="Sweet Spot Randwick">Sweet Spot Randwick</option>
+</select>
+<br>
+<strong>Mode of Transport:</strong><br>
+<select id="transportType">
+  <option value="0">Bicycling</option>
+  <option value="1">Driving</option>
+  <option value="2">Public Transport</option>
+  <option value="3">Walking</option>
+</select>
+<br><br>
+<button type="submit" id="submitBtn" name="submitBtn">PRESS ME!!!</button><br><br>
+<pre id="feedbackMsg">
+
+</pre>
+<style>
+        #map-canvas {
+                width: 500;
+                height: 400px;
+                background-color: #CCC;
+        }
+</style>
+<div id="map-canvas"></div>
+</div>
+</form>
+
+
