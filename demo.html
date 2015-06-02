@@ -1,3 +1,4 @@
+<html>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
 <script src="https://maps.googleapis.com/maps/api/js"></script>
 <script type="text/javascript">
@@ -85,10 +86,10 @@
 	
 	function callback(response, status) {
 		if (status == google.maps.DistanceMatrixStatus.OK) {
-			console.log(response.rows[0].elements[0].duration);
+			//console.log(response.rows[0].elements[0].duration);
 
 			var distance = response.rows[0].elements[0].distance.value;
-			console.log(distance);
+			//console.log(distance);
 			var tempDist = distance;
 			var count = 0;
 			while (tempDist > 1) {
@@ -96,11 +97,12 @@
 				tempDist = tempDist / 10;
 				console.log(tempDist);
 			}
-			console.log(distance, count);
+			//console.log(distance, count);
 			
 			GLOBALmap.setZoom(21 - 2 *count);
 			
 			feedbackMsg.innerHTML = 'Travel time: ' + response.rows[0].elements[0].duration.text;
+			feedbackMsg.innerHTML += '\nDistance: ' + distance + 'm';
 			
 		}
 	}
@@ -134,8 +136,9 @@ $( document ).ready(function(){
   <option value="3">Walking</option>
 </select>
 <br><br>
-<button type="submit" id="submitBtn" name="submitBtn">PRESS ME!!!</button><br><br>
+<button type="submit" id="submitBtn" name="submitBtn">Calculate Time</button><br><br>
 <pre id="feedbackMsg">
+
 
 </pre>
 <style>
@@ -148,5 +151,5 @@ $( document ).ready(function(){
 <div id="map-canvas"></div>
 </div>
 </form>
-
+</html>
 
